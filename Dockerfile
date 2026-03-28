@@ -8,6 +8,11 @@
 
 FROM python:3.12-slim
 
+# Required for nvidia-container-runtime to inject GPU drivers into non-nvidia
+# base images. Without these, the container starts without CUDA access.
+ENV NVIDIA_VISIBLE_DEVICES=all
+ENV NVIDIA_DRIVER_CAPABILITIES=compute,utility
+
 ARG DEBIAN_FRONTEND=noninteractive
 RUN apt-get update && apt-get install -y --no-install-recommends \
     git curl ffmpeg libsndfile1 \
