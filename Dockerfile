@@ -1,16 +1,17 @@
 # infra/vllm-omni/Dockerfile
 # Fork of runpod-workers/worker-vllm adapted for vllm-omni audio workloads
 # Upstream: https://github.com/runpod-workers/worker-vllm/releases/tag/v2.14.0
+#
+# Uses python:3.12-slim instead of nvidia/cuda base image. PyTorch/vllm pip
+# wheels ship their own CUDA runtime (nvidia-cudnn-cu12, nvidia-cublas-cu12,
+# etc.), so the ~4 GB system CUDA from the nvidia base was dead weight.
 
-FROM nvidia/cuda:12.9.1-cudnn-runtime-ubuntu24.04
+FROM python:3.12-slim
 
 ARG DEBIAN_FRONTEND=noninteractive
 RUN apt-get update && apt-get install -y --no-install-recommends \
-    python3.12 python3-pip python3.12-dev python3.12-venv \
     git curl ffmpeg libsndfile1 \
-    && rm -rf /var/lib/apt/lists/* \
-    && ln -sf /usr/bin/python3.12 /usr/bin/python3 \
-    && ln -sf /usr/bin/python3.12 /usr/bin/python
+    && rm -rf /var/lib/apt/lists/*
 
 COPY --from=ghcr.io/astral-sh/uv:latest /uv /usr/local/bin/uv
 
@@ -20,13 +21,18 @@ RUN uv venv /opt/venv
 ENV PATH="/opt/venv/bin:$PATH"
 
 # vllm base + omni extension
-# Pre-built wheels target CUDA 12.9 for v0.18.0
-# https://docs.vllm.ai/projects/vllm-omni/en/latest/getting_started/installation/gpu/
-RUN uv pip install vllm --torch-backend=auto \
-    && uv pip install vllm-omni
+# PyTorch wheels pull nvidia-cudnn-cu12, nvidia-cublas-cu12, etc. as deps.
+# No system CUDA needed — pip packages provide all user-space runtime libs.
+RUN uv pip install --no-cache-dir vllm --torch-backend=auto \
+    && uv pip install --no-cache-dir vllm-omni
 
 COPY requirements.txt /app/requirements.txt
-RUN uv pip install -r /app/requirements.txt
+RUN uv pip install --no-cache-dir -r /app/requirements.txt
+
+# Strip build artifacts to reduce image size
+RUN find /opt/venv -type d -name "__pycache__" -exec rm -rf {} + 2>/dev/null; \
+    find /opt/venv -type d -name "tests" -exec rm -rf {} + 2>/dev/null; \
+    true
 
 COPY src/ /app/src/
 COPY start.sh /app/start.sh

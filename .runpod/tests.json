@@ -13,6 +13,6 @@
   "config": {
     "gpuTypeId": "NVIDIA RTX A5000",
     "gpuCount": 1,
-    "allowedCudaVersions": ["12.9"]
+    "allowedCudaVersions": ["12.4", "12.6", "12.8", "12.9"]
   }
 }
