@@ -1,0 +1,7 @@
+{
+  "input": {
+    "text": "Hello, this is a test of the text to speech system.",
+    "voice": "default",
+    "speed": 1.0
+  }
+}

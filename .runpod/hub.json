@@ -1,0 +1,59 @@
+{
+  "title": "vLLM-Omni TTS",
+  "description": "Text-to-speech serverless worker powered by vllm-omni (Qwen3-TTS)",
+  "type": "serverless",
+  "category": "audio",
+  "config": {
+    "runsOn": "GPU",
+    "containerDiskInGb": 50,
+    "gpuIds": "ADA_24,ADA_48,ADA_80,AMPERE_80",
+    "gpuCount": 1,
+    "allowedCudaVersions": ["12.9"],
+    "env": [
+      {
+        "key": "MODEL_PATH",
+        "input": {
+          "name": "Model Path",
+          "type": "string",
+          "description": "Path to model weights on the network volume",
+          "default": "/runpod-volume/models/Qwen3-TTS"
+        }
+      },
+      {
+        "key": "SERVED_MODEL_NAME",
+        "input": {
+          "name": "Served Model Name",
+          "type": "string",
+          "description": "Name exposed via the OpenAI-compatible API",
+          "default": "tts-1",
+          "advanced": true
+        }
+      },
+      {
+        "key": "DTYPE",
+        "input": {
+          "name": "Data Type",
+          "type": "string",
+          "description": "Model weight data type",
+          "options": [
+            {"label": "bfloat16", "value": "bfloat16"},
+            {"label": "float16", "value": "float16"},
+            {"label": "auto", "value": "auto"}
+          ],
+          "default": "bfloat16",
+          "advanced": true
+        }
+      },
+      {
+        "key": "MAX_TEXT_LEN",
+        "input": {
+          "name": "Max Text Length",
+          "type": "number",
+          "description": "Maximum input text character length",
+          "default": 500,
+          "advanced": true
+        }
+      }
+    ]
+  }
+}

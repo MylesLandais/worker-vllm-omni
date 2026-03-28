@@ -1,0 +1,18 @@
+{
+  "tests": [
+    {
+      "name": "basic_tts",
+      "input": {
+        "text": "Hello, this is a test.",
+        "voice": "default",
+        "speed": 1.0
+      },
+      "timeout": 30000
+    }
+  ],
+  "config": {
+    "gpuTypeId": "NVIDIA RTX A5000",
+    "gpuCount": 1,
+    "allowedCudaVersions": ["12.9"]
+  }
+}
