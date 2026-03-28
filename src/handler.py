@@ -17,7 +17,10 @@ _skip = os.environ.get("VLLM_OMNI_SKIP") == "1"
 
 async def handler(job: dict) -> dict:
     if _skip:
-        return {"error": "engine unavailable — model not mounted"}
+        return {
+            "status": "degraded",
+            "message": "model not mounted — attach network volume with weights",
+        }
 
     try:
         from utils import JobInput
