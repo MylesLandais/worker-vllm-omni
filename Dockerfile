@@ -7,6 +7,10 @@
 
 FROM vllm/vllm-omni:v0.16.0
 
+# Register CUDA 12.9 forward-compatibility libs so cu129 torch works
+# on hosts with older drivers (matches runpod-workers/worker-vllm pattern).
+RUN ldconfig /usr/local/cuda-12.9/compat/
+
 ARG DEBIAN_FRONTEND=noninteractive
 RUN apt-get update && apt-get install -y --no-install-recommends \
     curl ffmpeg libsndfile1 \
