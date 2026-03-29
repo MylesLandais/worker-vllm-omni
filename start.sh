@@ -6,6 +6,17 @@ VLLM_PORT=${VLLM_PORT:-8091}
 DTYPE=${DTYPE:-bfloat16}
 SERVED_MODEL_NAME=${SERVED_MODEL_NAME:-tts-1}
 
+# Diagnostic: show environment and GPU state
+echo "[start] === diagnostics ==="
+echo "[start] MODEL_PATH=$MODEL_PATH"
+echo "[start] NVIDIA_VISIBLE_DEVICES=${NVIDIA_VISIBLE_DEVICES:-<unset>}"
+echo "[start] python=$(python --version 2>&1)"
+python -c "import torch; print(f'[start] torch={torch.__version__} cuda={torch.cuda.is_available()} devices={torch.cuda.device_count()}')" 2>&1 || echo "[start] torch import failed"
+ls -la "$MODEL_PATH" 2>&1 | head -5 || echo "[start] MODEL_PATH not accessible"
+ls -la "$(dirname "$MODEL_PATH")" 2>&1 | head -10 || true
+nvidia-smi --query-gpu=name,memory.total --format=csv,noheader 2>&1 || echo "[start] nvidia-smi not available"
+echo "[start] === end diagnostics ==="
+
 # If model weights aren't present (e.g. RunPod test pod without volume),
 # skip the vllm-omni sidecar and start the handler in degraded mode.
 if [ ! -d "$MODEL_PATH" ]; then
@@ -24,7 +35,7 @@ vllm-omni serve "$MODEL_PATH" \
   --dtype "$DTYPE" \
   --trust-remote-code \
   --gpu-memory-utilization 0.9 \
-  &
+  2>&1 &
 
 VLLM_PID=$!
 
@@ -32,7 +43,9 @@ VLLM_PID=$!
 READY=0
 for i in $(seq 1 90); do
   if ! kill -0 $VLLM_PID 2>/dev/null; then
-    echo "[start] vllm-omni process died during startup"
+    echo "[start] vllm-omni process died during startup (pid=$VLLM_PID)"
+    wait $VLLM_PID 2>/dev/null || true
+    echo "[start] exit code: $?"
     exit 1
   fi
   if curl -sf "http://127.0.0.1:$VLLM_PORT/health" > /dev/null 2>&1; then
