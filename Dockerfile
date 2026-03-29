@@ -28,4 +28,5 @@ ENV SERVED_MODEL_NAME=tts-1
 ENV DTYPE=bfloat16
 ENV VLLM_PORT=8091
 
+ENTRYPOINT []
 CMD ["/app/start.sh"]
