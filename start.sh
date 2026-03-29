@@ -14,7 +14,8 @@ echo "[start] python=$(python --version 2>&1)"
 python -c "import torch; print(f'[start] torch={torch.__version__} cuda={torch.cuda.is_available()} devices={torch.cuda.device_count()}')" 2>&1 || echo "[start] torch import failed"
 ls -la "$MODEL_PATH" 2>&1 | head -5 || echo "[start] MODEL_PATH not accessible"
 ls -la "$(dirname "$MODEL_PATH")" 2>&1 | head -10 || true
-nvidia-smi --query-gpu=name,memory.total --format=csv,noheader 2>&1 || echo "[start] nvidia-smi not available"
+nvidia-smi 2>&1 | head -20 || echo "[start] nvidia-smi not available"
+cat /proc/driver/nvidia/version 2>&1 || true
 echo "[start] === end diagnostics ==="
 
 # If model weights aren't present (e.g. RunPod test pod without volume),
